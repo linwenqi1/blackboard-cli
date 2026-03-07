@@ -1,0 +1,4 @@
+playwright
+questionary
+rich
+requests
