@@ -189,8 +189,10 @@ class BlackboardShell:
             console.print("\n[info]💡 修复建议：[/info]")
             py_cmd = "python3" if system != "Windows" else "python"
             if system == "Linux":
-                console.print(f"  [primary]1.[/primary] 运行以下命令安装内置浏览器及其[bold]系统依赖[/bold]：")
-                console.print(f"     [bold white]{py_cmd} -m playwright install --with-deps chromium[/bold white]")
+                console.print(f"  [primary]1.[/primary] 运行以下命令安装内置浏览器：")
+                console.print(f"     [bold white]{py_cmd} -m playwright install chromium[/bold white]")
+                console.print(f"  [primary]2.[/primary] 如果运行报错提示缺少库，请联系管理员执行：")
+                console.print(f"     [bold white]sudo {py_cmd} -m playwright install-deps chromium[/bold white]")
             else:
                 console.print(f"  [primary]1.[/primary] 确保已安装 [bold]Chrome[/bold] 或 [bold]Edge[/bold]")
                 console.print(f"  [primary]2.[/primary] 或者运行以下命令安装 Playwright 内置浏览器：")
