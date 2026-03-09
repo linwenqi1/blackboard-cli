@@ -3,6 +3,7 @@ import time
 import requests
 import mimetypes
 import threading
+import platform
 from pathlib import Path
 from urllib.parse import urljoin
 from getpass import getpass
@@ -154,14 +155,25 @@ class BlackboardShell:
         
         username = Prompt.ask("[primary]用户名[/primary]")
         password = getpass("  密码: ")
-        default_dir = os.path.join(os.environ.get('USERPROFILE', os.path.expanduser("~")), "Downloads")
+        # default_dir = os.path.join(os.environ.get('USERPROFILE', os.path.expanduser("~")), "Downloads")
+        default_dir = str(Path.home() / "Downloads")
         self.download_dir = Prompt.ask("[primary]保存路径[/primary]", default=default_dir).strip()
         
         os.makedirs(self.download_dir, exist_ok=True)
         self.playwright = sync_playwright().start()
         
         # 浏览器自动适配
-        channels = ["msedge", "chrome", None]
+        # channels = ["msedge", "chrome", None]
+        system = platform.system()
+        if system == "Windows":
+            channels = ["msedge", "chrome", None]
+        elif system == "Darwin":  # macOS
+            # Mac 上 Chrome 和 Edge 的路径通常是标准的
+            channels = ["chrome", "msedge", None]
+        else:  # Linux
+            # Linux 下 Chrome 通常叫 google-chrome，而 Edge 叫 microsoft-edge
+            channels = ["google-chrome", "microsoft-edge", None]
+        
         for channel in channels:
             try:
                 with console.status(f"[cyan]尝试启动 {channel or '内置Chromium'}..."):
@@ -170,7 +182,19 @@ class BlackboardShell:
             except: continue
 
         if not self.browser:
-            console.print("[error]无法启动浏览器，请检查是否安装 Edge 或 Chrome。[/error]")
+            console.print("[error]无法启动浏览器[/error]")
+            console.print("\n[white]这通常是因为没有找到 Chrome/Edge，或者 Playwright 未初始化。[/white]")
+            
+            # 根据系统给出具体的修复命令
+            console.print("\n[info]💡 修复建议：[/info]")
+            py_cmd = "python3" if system != "Windows" else "python"
+            if system == "Linux":
+                console.print(f"  [primary]1.[/primary] 运行以下命令安装内置浏览器及其[bold]系统依赖[/bold]：")
+                console.print(f"     [bold white]{py_cmd} -m playwright install --with-deps chromium[/bold white]")
+            else:
+                console.print(f"  [primary]1.[/primary] 确保已安装 [bold]Chrome[/bold] 或 [bold]Edge[/bold]")
+                console.print(f"  [primary]2.[/primary] 或者运行以下命令安装 Playwright 内置浏览器：")
+                console.print(f"     [bold white]{py_cmd} -m playwright install chromium[/bold white]")
             return False
 
         self.context = self.browser.new_context()
